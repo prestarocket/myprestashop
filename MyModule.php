@@ -1,9 +1,12 @@
 <?php
 
-require_once('MyTools.php');
 
 class MyModule extends Module
 {
+
+    /**
+     * Module constructor
+     */
     public function __construct()
     {
         $this->author = 'reservationpartner.com';
@@ -23,8 +26,10 @@ class MyModule extends Module
         //$this->confirmUninstall = $this->l('Are you sure you want to uninstall?');
     }
 
-    /*
+    /**
      * Register an array of module hooks and return true or false
+     * @param array $hookNames
+     * @return bool
      */
     protected function registerHooks($hookNames){
         $isSuccess = true;
@@ -187,8 +192,10 @@ class MyModule extends Module
         return $helper->generateOptions($fieldsets);
     }
 
-    /*
-     * Execute an array of SQL statements
+    /**
+     * Executes an array of SQL statements
+     * @param array $sql
+     * @return bool
      */
     protected function runSQL($sql)
     {
@@ -207,8 +214,12 @@ class MyModule extends Module
         return true;
     }
 
-    /*
+    /**
      * Installs a new Admin Tab with provided parameters
+     * @param string|array $tabTitle Tab title: single string or language array
+     * @param string $controllerClassName Controller's class name, without word 'Controller' at the end
+     * @param string|int $parentClassName Parent class name or ID
+     * @return bool|int
      */
     protected function installAdminTab($tabTitle, $controllerClassName, $parentClassName)
     {
@@ -234,8 +245,10 @@ class MyModule extends Module
         return $tab->add() ? ((int) $tab->id) : false;
     }
 
-    /*
+    /**
      * Uninstalls specified Admin Tab
+     * @param string $controllerClassName Controller's class name, without word 'Controller' at the end
+     * @return bool
      */
     protected function uninstallAdminTab($controllerClassName)
     {
@@ -250,7 +263,7 @@ class MyModule extends Module
      * @param array $carrierProperties
      * @return bool|int Returns installed carrier ID or false if failed to install
      */
-    public function installLpExpressCarrier($carrierProperties) {
+    public function installModuleCarrier($carrierProperties) {
 
         $carrier = new Carrier();
         $carrier->hydrate($carrierProperties);
