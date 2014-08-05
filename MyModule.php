@@ -21,8 +21,6 @@ class MyModule extends Module
     {
         $this->name    = 'mymodule';
         /*
-         * front_office_features
-         * shipping_logistics
          * administration
          * advertising_marketing
          * analytics_stats
