@@ -30,7 +30,7 @@ if($obj->save()){
 }
 
 // Return current value as it is in Database and show it in page
-$response['value'] = MyObjectModel::getValue();
+$response['value'] = MyObjectModel::getValue($id_obj);
 
 echo json_encode($response);
 
