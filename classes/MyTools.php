@@ -20,7 +20,7 @@ class MyTools extends Tools
      * Returns shop's users groups IDs array
      * @return array Integer array of IDs
      */
-    public function getGroupsIDs(){
+    public static function getGroupsIDs(){
         $sql = new DbQuery();
         $sql->select('id_group')->from('group');
         $rows = Db::getInstance()->executeS($sql);
@@ -64,7 +64,6 @@ class MyTools extends Tools
                     return false;
                 }
             } catch (Exception $e) {
-                // @TODO Set and return module install error
                 error_log($e);
                 return false;
             }
@@ -77,7 +76,7 @@ class MyTools extends Tools
      * @param string $email
      * @return string HTML
      */
-    public static function emailLink($email){
+    public static function makeEmailLink($email){
         return '<a href="mailto:'.$email.'">'.$email.'</a>';
     }
 
@@ -86,7 +85,7 @@ class MyTools extends Tools
      * @param string $phoneNum
      * @return string HTML
      */
-    public static function telephoneLink($phoneNum){
+    public static function makePhoneLink($phoneNum){
         return '<a href="tel:'.$phoneNum.'">'.$phoneNum.'</a>';
     }
 
@@ -95,7 +94,7 @@ class MyTools extends Tools
      * @param $html HTML
      * @return string HTML
      */
-    public static function removeScript( $html ){
+    public static function removeScript($html){
         return trim( preg_replace('#\<script[.\s\S]*?\<\/script\>#mi', '', $html) );
     }
 
@@ -104,7 +103,7 @@ class MyTools extends Tools
      * @param $html HTML
      * @return string HTML
      */
-    public static function removeFormTags( $html ){
+    public static function removeFormTags($html){
         return trim( preg_replace('#<\/?form.*?>#mi', '', $html) );
     }
 
@@ -116,16 +115,12 @@ class MyTools extends Tools
         return (version_compare(_PS_VERSION_, 1.6) >= 0) ? true : false;
     }
 
-    /*
-     *
-     */
     /**
      * Creates a publicly readable path (folders)
      * @param $fullPath Full local folder path
      * @return bool
      */
     public static function makePublicDir( $fullPath ){
-
         $isRecursive = true;
         $isCreateDir = true;
         if(!is_dir($fullPath)){
@@ -137,12 +132,11 @@ class MyTools extends Tools
     }
 
     /**
-     * @param  string $type Can be 'error', 'success', 'warning'
-     * @param  string $text Text to be placed inside the message
-     * @param  bool $time Appends time text to the message
-     * @return string Message HTML
+     * @param string $type Can be 'error', 'success', 'warning'
+     * @param string $text Text to be placed inside the message
+     * @return string
      */
-    public function msg($type, $text, $checked = false){
+    public static function msg($type, $text){
         $isBootstrap = self::isBootstrap();
         $classes = array(
             'error'   => $isBootstrap ? 'alert alert-danger'  : 'error',
@@ -150,8 +144,7 @@ class MyTools extends Tools
             'warning' => $isBootstrap ? 'alert alert-warning' : 'warn warning',
         );
         $class = array_key_exists($type, $classes) ? $classes[$type] : $classes['success'];
-        $timeText = $checked ? sprintf($this->l('Checked @ %s'), date('Y-m-d H:i:s')) : '';
-        return '<div class="'.$class.'">'.$text.' '.$timeText.'.</div>';
+        return '<div class="'.$class.'">'.$text.'</div>';
     }
 
 }
