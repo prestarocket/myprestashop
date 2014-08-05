@@ -1,4 +1,4 @@
 myprestashop
 ============
 
-Collection of regurlarly needed custom PrestaShop functions and extensions
+Collection of regularly needed custom PrestaShop functions and extensions
