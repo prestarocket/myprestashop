@@ -1,39 +1,50 @@
 <?php
 
-require_once (_PS_MODULE_DIR_ . 'requestamodule/models/ModuleRequest.php');
-require_once (_PS_MODULE_DIR_ . 'requestamodule/requestamodule.php');
+require_once (_PS_MODULE_DIR_.'mymodule/models/MyObjectModel.php');
+require_once (_PS_MODULE_DIR_.'mymodule/mymodule.php');
 
 class MyModuleActionOneModuleFrontController extends FrontController {
 
-    const MSG_INVALID_EMAIL  = 1;
-    const MSG_EMPTY_DESC     = 2;
-    const MSG_TOO_LONG_DESC  = 3;
-    const MSG_INVALID_DESC   = 4;
-    const MSG_INQUIRY_SAVED  = 5;
-    const MSG_INQUIRY_FAIL   = 6;
-    const MSG_UPLOAD_FAIL    = 7;
-    const MSG_INVALID_FILE   = 8;
-    const MSG_FILE_NOT_SAVED = 9;
-    const MSG_FILE_MAX_SIZE  = 10;
+    const MSG_INVALID_EMAIL  = 1,
+          MSG_EMPTY_DESC     = 2,
+          MSG_TOO_LONG_DESC  = 3,
+          MSG_INVALID_DESC   = 4,
+          MSG_INQUIRY_SAVED  = 5,
+          MSG_INQUIRY_FAIL   = 6,
+          MSG_UPLOAD_FAIL    = 7,
+          MSG_INVALID_FILE   = 8,
+          MSG_FILE_NOT_SAVED = 9,
+          MSG_FILE_MAX_SIZE  = 10;
 
     const MAX_UPLOAD_SIZE    = 20971520;
-
-    protected $_module = null;
 
     public function setMedia()
     {
         parent::setMedia();
-        $this->addJS(_MODULE_DIR_.'requestamodule/js/jquery.autosize.min.js');
-        $this->addCSS(_MODULE_DIR_.'requestamodule/css/requestform.css');
+        $this->addJS (_MODULE_DIR_.'mymodule/js/jquery.autosize.min.js');
+        $this->addCSS(_MODULE_DIR_.'mymodule/css/mymodule.css');
+    }
+
+    public function initContent()
+    {
+        parent::initContent();
+
+        $id_lang = (int) $this->context->language->id;
+        $submit  = Context::getContext()->link->getModuleLink('mymodule', 'ActionOne');
+
+        $this->context->smarty->assign(array(
+            'paragraph' => Configuration::get('MY_MODULE_PARAGRAPH', $id_lang),
+            'submit'    => $submit,
+            'time'      => date("Y-m-d H:i:s"),
+        ));
     }
 
     public function init()
     {
         parent::init();
-        $this->setTemplate(_PS_MODULE_DIR_.'requestamodule/views/requestform.tpl');
+        $this->setTemplate(_PS_MODULE_DIR_.'mymodule/views/mymodule.tpl');
 
         $input = array(
-            'request_reference'     => '',
             'email'                 => Tools::getValue('email', ''),
             'phone_number'          => Tools::getValue('phone_number', ''),
             'module_description'    => Tools::getValue('module_description', ''),
@@ -129,20 +140,6 @@ class MyModuleActionOneModuleFrontController extends FrontController {
                 $this->context->smarty->assign('message', $msg);
             } /* if !$error */
         } /* if isSubmit */
-    }
-
-    public function initContent()
-    {
-        parent::initContent();
-
-        $id_lang = (int) $this->context->language->id;
-        $submit  = Context::getContext()->link->getModuleLink('requestamodule', 'RequestForm');
-
-        $this->context->smarty->assign(array(
-            'paragraph' => Configuration::get('REQUEST_A_MODULE_PARAGRAPH', $id_lang),
-            'submit'    => $submit,
-            'time'      => date("Y-m-d H:i:s"),
-        ));
     }
 
 }
