@@ -3,7 +3,7 @@
 require_once(_PS_MODULE_DIR_.'lpexpress24/models/LpExpressTerminal.php');
 require_once(_PS_MODULE_DIR_.'lpexpress24/classes/BalticPostAPI.php');
 
-class AdminLpExpressTerminalController extends AdminController
+class AdminMyModuleMyObjectModelController extends AdminController
 {
     public $bootstrap;
     public $msg;
@@ -12,10 +12,11 @@ class AdminLpExpressTerminalController extends AdminController
 
     public function __construct()
     {
-        $this->className  = 'LpExpressTerminal';
-        $this->table      = LpExpressTerminal::getTableName(false);
-        $this->moduleName = 'lpexpress24';
+        $this->className  = 'MyObjectModel';
+        $this->table      =  MyObjectModel::getTableName();
+        $this->moduleName = 'mymodule';
 
+        //$this->identifier = 'id_mymod';
         //$this->context   = Context::getContext();
 
         $this->_defaultOrderBy  = 'city';
@@ -33,76 +34,29 @@ class AdminLpExpressTerminalController extends AdminController
         );
 
         $this->msg = array(
-            'MSG_REFRESH_SUCCESS'    => $this->l('LP Express 24 parcel terminal list refreshed successfully.'),
-            'MSG_REFRESH_FAILED'     => $this->l('Could not refresh parcel terminal list.'),
-            'MSG_INVALID_LOGIN'      => $this->l('Could not connect to the LP Express 24 server. Please check you log in information and try again.'),
-            'MSG_SOAPCLIENT_MISSING' => $this->l('PHP extension \'SoapClient\' is disabled or not installed. Cannot connect to LP Express 24 server. Please contact your server administrator and enable this required extension for the module to work.'),
+            'TYPE1' => $this->l('TEXT 1'),
+            'TYPE2' => $this->l('TEXT 2'),
         );
 
+        /**
+         * Fields to show in renderList and renderForm
+         */
         $this->fields_list = array(
-            'machineid'       => array(
-                'title' => $this->l('Machine ID'),
+            'field1'       => array(
+                'title' => $this->l('Field 1'),
                 'width' => 'auto',
                 /* 'align' => 'center', */
             ),
-            'name'            => array(
-                'title' => $this->l('Name'),
+            'field3'            => array(
+                'title' => $this->l('Field 2'),
                 'width' => 'auto',
             ),
-            'address'         => array(
-                'title' => $this->l('Address'),
+            'field4'         => array(
+                'title' => $this->l('Field 3'),
                 'width' => 'auto',
             ),
-            'zip'             => array(
-                'title' => $this->l('Zip'),
-                'width' => 'auto',
-            ),
-            'city'            => array(
-                'title' => $this->l('City'),
-                'width' => 'auto',
-            ),
-            'comment'         => array(
-                'title' => $this->l('Comment'),
-                'width' => 'auto',
-            ),
-            'inside'          => array(
-                'title' => $this->l('Inside'),
-                'width' => 'auto',
-            ),
-            'boxcount'        => array(
-                'title' => $this->l('Box Count'),
-                'width' => 'auto',
-            ),
-            'collectinghours' => array(
-                'title' => $this->l('Collecting Hours'),
-                'width' => 'auto',
-            ),
-            'workinghours'    => array(
-                'title' => $this->l('Working Hours'),
-                'width' => 'auto',
-            ),
-            'latitude'        => array(
-                'title' => $this->l('Latitude'),
-                'width' => 'auto',
-            ),
-            'longitude'       => array(
-                'title' => $this->l('Longitude'),
-                'width' => 'auto',
-            ),
-            'boxes_s'         => array(
-                'title' => $this->l('Boxes S'),
-                'width' => 'auto',
-            ),
-            'boxes_m'         => array(
-                'title' => $this->l('Boxes M'),
-                'width' => 'auto',
-            ),
-            'boxes_l'         => array(
-                'title' => $this->l('Boxes L'),
-                'width' => 'auto',
-            ),
-            'boxes_xl'        => array(
-                'title' => $this->l('Boxes XL'),
+            'field5'    => array(
+                'title' => $this->l('Field 4'),
                 'width' => 'auto',
             ),
         );
@@ -113,22 +67,22 @@ class AdminLpExpressTerminalController extends AdminController
     }
 
     /**
-     * Adds custom toolbar buttons and handles 'Refresh Terminals' button click. Also returns default rendered list
-     * @return string
+     * Add custom toolbar buttons, handle submits
+     * @return string HTML
      */
     public function renderList()
     {
-        $html   = '';
-        $method = Tools::getValue('method');
 
-        if($method == 'refreshList'){
-            $html .= $this->_refreshTerminalList();
+        $method = Tools::getValue('method');
+        if($method == 'processList'){
+            // Process list
+            //$html .= $this->_processList();
         }
 
         $iconRefresh = $this->bootstrap ? 'download' : 'refresh-index';
         $this->toolbar_btn[$iconRefresh] = array(
-            'desc' => $this->l('Update Terminals'),
-            'href' => AdminController::$currentIndex.'&method=refreshList&token='.Tools::getAdminTokenLite('AdminLpExpressTerminal'),
+            'desc' => $this->l('Update Objects'),
+            'href' => AdminController::$currentIndex.'&method=processList&token='.Tools::getAdminTokenLite('AdminMyModuleMyObjectModel'),
         );
 
         $iconConfig = $this->bootstrap ? 'edit' : 'new-url';
@@ -140,38 +94,15 @@ class AdminLpExpressTerminalController extends AdminController
         // Remove 'Add New' button
         unset($this->toolbar_btn['new']);
 
-        $html .= parent::renderList();
-
-        return $html;
+        return parent::renderList();
     }
 
     /**
-     * Tries to download latest parcel terminal data and replace it.
-     * @return string
+     * Process and change list data saved in DB
+     * @return string HTML
      */
-    protected function _refreshTerminalList(){
-
-        if(class_exists('SoapClient')){
-
-            $auth = Configuration::getMultiple(array('BP_PARTNER_ID', 'BP_PARTNER_PASSWORD'));
-            BalticPostAPI::setAuthData($auth['BP_PARTNER_ID'], $auth['BP_PARTNER_PASSWORD']);
-
-            $terminalsData = BalticPostAPI::getPublicTerminals();
-
-            if(!empty($terminalsData)){
-                LpExpressTerminal::refreshTerminals($terminalsData);
-                $html = $this->msg('success', $this->msg['MSG_REFRESH_SUCCESS']);
-            } else {
-                $html = $this->msg('warning', $this->msg['MSG_REFRESH_FAILED']);
-            }
-
-            // If BalticPostApi::testAuth();
-            // $html = $this->msg('error', $this->msg['MSG_INVALID_LOGIN']);
-
-        } else {
-            $html = $this->msg('error', $this->msg['MSG_SOAPCLIENT_MISSING']);
-        }
-
+    protected function _processList(){
+        $html = '';
         return $html;
     }
 
@@ -184,12 +115,14 @@ class AdminLpExpressTerminalController extends AdminController
         $toolbar = parent::renderView();
         $view    = '';
 
-        if($id_lp_express_terminal = Tools::getValue('id_lp_express_terminal', false)){
 
-            $terminal = new LpExpressTerminal( $id_lp_express_terminal );
+
+        if($id_object_model = Tools::getValue('id_object_model')){
+
+            $object = new MyObjectModel($id_object_model);
 
             // Array containing field keys and values
-            $fields = $terminal->getFields();
+            $fields = $object->getFields();
 
             // Create title array
             $titles = array();
@@ -200,20 +133,23 @@ class AdminLpExpressTerminalController extends AdminController
                     $titles[$fieldKey] = $fieldKey;
                 }
 
+                // If value is empty, assign HTML whitespace
                 if(empty($fields[$fieldKey])){
                     $fields[$fieldKey] = '&nbsp;';
                 }
             }
 
-            // Custom titles
-            $titles['id_lp_express_terminal'] = 'ID';
-            $titles['active']  = 'Active';
-            $titles['deleted'] = 'Deleted';
+            // Set custom titles
+            $titles['id_object_model'] = 'ID';
 
             // Set custom values here, e.g. add anchors to email strings
-            $customValues = array();
+            $customValues = array(
+                $fields['email'] = MyTools::makeEmailLink($fields['email']),
+            );
 
-            $view = $this->renderFormView(array_merge($fields, $customValues), $titles);
+            $mergedFields = array_merge($fields, $customValues);
+
+            $view = $this->renderFormView($mergedFields, $titles);
         }
 
         return $toolbar.$view;
@@ -241,12 +177,12 @@ class AdminLpExpressTerminalController extends AdminController
         $helper->show_toolbar = false;
 
         $view = $helper->generateForm($fields_form);
-        $view = $this->removeScript($view);
+        $view = MyTools::removeScript($view);
         if(!$this->bootstrap){
-            $view = $this->removeFormTags($view);
+            $view = MyTools::removeFormTags($view);
         }
 
-        // Style modifications
+        // Add style modifications
         if(!$this->bootstrap){
             $style = '<style>.margin-form{padding-top:0.3em;font-size:0.9em;word-break:break-all;</style>';
         } else {
@@ -254,42 +190,6 @@ class AdminLpExpressTerminalController extends AdminController
         }
 
         return $style.$view;
-    }
-
-    /**
-     * Removes <script></script> block from given HTML and trims whitespaces.
-     * @param string $html
-     * @return string
-     */
-    public function removeScript( $html ){
-        return trim( preg_replace('#\<script[.\s\S]*?\<\/script\>#mi', '', $html) );
-    }
-
-    /**
-     * Removes <form></form> tags from given HTML and trims whitespaces.
-     * @param string $html
-     * @return string
-     */
-    public function removeFormTags( $html ){
-        return trim( preg_replace('#<\/?form.*?>#mi', '', $html) );
-    }
-
-    /**
-     * Returns PrestaShop style message HTML
-     * @param  string $type Can be 'error', 'success', 'warning'
-     * @param  string $text Text to be placed inside the message
-     * @param  bool $time Appends time text to the message
-     * @return string Message HTML
-     */
-    public function msg($type, $text, $time = true){
-        $classes = array(
-            'error'   => $this->bootstrap ? 'alert alert-danger'  : 'error',
-            'success' => $this->bootstrap ? 'alert alert-success' : 'conf confirm',
-            'warning' => $this->bootstrap ? 'alert alert-warning' : 'warn warning',
-        );
-        $class = array_key_exists($type, $classes) ? $classes[$type] : $classes['success'];
-        $timeText = $time ? sprintf($this->l('Checked @ %s'), date('Y-m-d H:i:s')) : '';
-        return '<div class="'.$class.'">'.$text.' '.$timeText.'.</div>';
     }
 
 }
