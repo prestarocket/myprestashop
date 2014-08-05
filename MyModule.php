@@ -1,29 +1,59 @@
 <?php
 
+/**
+ * Check if file has been called by PrestaShop
+ */
+if (!defined('_PS_VERSION_')){
+    exit;
+}
 
 class MyModule extends Module
 {
+    /**
+     * @var Custom class properties must be declared first (works 4 times faster)
+     */
+    public $customProperty;
 
     /**
      * Module constructor
      */
     public function __construct()
     {
+        $this->name    = 'mymodule';
+        $this->tab     = 'shipping_logistics';
+        $this->version = '1.0.0';
+
+
         $this->author = 'reservationpartner.com';
         $this->need_instance = 0;
         $this->ps_versions_compliancy = array('min' => '1.5', 'max' => '1.6');
 
+        parent::__construct();
 
+        /**
+         * $this->l() can only called after parent::construct();
+         */
+        $this->displayName      = $this->l('MyModule Name');
+        $this->description      = $this->l('MyModule Description');
+        $this->confirmUninstall = $this->l('Are you sure you want to uninstall?');
+
+        /**
+         * Shows warning in module page, back-office
+         */
+        $this->warning = $this->l('warning');
+
+        /**
+         * Module folder
+         */
         $this->folder = _PS_MODULE_DIR_.$this->name.'/';
 
+        /**
+         * Bootstrap variables in module and template scopes
+         */
         $this->bootstrap = (version_compare(_PS_VERSION_, 1.6) >= 0) ? true : false;
         Context::getContext()->smarty->assign(array(
             'bootstrap' => $this->bootstrap,
         ));
-
-        parent::__construct();
-
-        //$this->confirmUninstall = $this->l('Are you sure you want to uninstall?');
     }
 
     /**
