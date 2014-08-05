@@ -20,7 +20,36 @@ class MyModule extends Module
     public function __construct()
     {
         $this->name    = 'mymodule';
-        $this->tab     = 'shipping_logistics';
+        /*
+         * front_office_features
+         * shipping_logistics
+         * administration
+         * advertising_marketing
+         * analytics_stats
+         * billing_invoicing
+         * checkout
+         * content_management
+         * emailing
+         * export
+         * front_office_features
+         * i18n_localization
+         * market_place
+         * merchandizing
+         * migration_tools
+         * mobile
+         * others
+         * payments_gateways
+         * payment_security
+         * pricing_promotion
+         * quick_bulk_update
+         * search_filter
+         * seo
+         * shipping_logistics
+         * slideshows
+         * smart_shopping
+         * social_networks
+         */
+        $this->tab     = 'front_office_features';
         $this->version = '1.0.0';
 
 
