@@ -8,17 +8,22 @@ class AdminLpExpressTerminalController extends AdminController
     public $bootstrap;
     public $msg;
 
+    // protected $context;
+
     public function __construct()
     {
         $this->className  = 'LpExpressTerminal';
         $this->table      = LpExpressTerminal::getTableName(false);
         $this->moduleName = 'lpexpress24';
 
+        //$this->context   = Context::getContext();
+
         $this->_defaultOrderBy  = 'city';
         $this->_defaultOrderWay = 'asc';
 
         $this->addRowAction('view');
         $this->addRowAction('delete');
+        // $this->addRowAction('edit');
 
         $this->bulk_actions = array(
             'delete' => array(
@@ -38,6 +43,7 @@ class AdminLpExpressTerminalController extends AdminController
             'machineid'       => array(
                 'title' => $this->l('Machine ID'),
                 'width' => 'auto',
+                /* 'align' => 'center', */
             ),
             'name'            => array(
                 'title' => $this->l('Name'),
