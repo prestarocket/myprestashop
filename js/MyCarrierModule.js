@@ -164,14 +164,14 @@ function in_array(needle, haystack){
 // One step checkout;
 function saveTerminal($select){
 
-    var machineIdVal = $select.val();
+    var param1Val = $select.val();
 
     $.ajax({
         dataType : 'json',
         type     : 'POST',
-        url      : baseDir + 'modules/lpexpress24/ajax/saveTerminalData.php',
+        url      : baseDir + 'modules/mymodule/ajax/saveData.php',
         data: {
-            machineid  : machineIdVal
+            param1  : param1Val
         }
     }).done(function(data){
         $select.val( data.machineid );
