@@ -15,7 +15,7 @@ class MyModule extends Module
     public $customProperty;
 
     /**
-     * Module constructor
+     * Module class constructor
      */
     public function __construct()
     {
@@ -51,9 +51,10 @@ class MyModule extends Module
          */
         $this->tab     = 'front_office_features';
         $this->version = '1.0.0';
+        $this->author  = 'reservationpartner.com';
 
+        // $this->module_key => '';
 
-        $this->author = 'reservationpartner.com';
         $this->need_instance = 0;
         $this->ps_versions_compliancy = array('min' => '1.5', 'max' => '1.6');
 
@@ -83,7 +84,172 @@ class MyModule extends Module
         Context::getContext()->smarty->assign(array(
             'bootstrap' => $this->bootstrap,
         ));
+
+        $this->init();
     }
+
+    /**
+     * Custom initialization function
+     */
+    protected function init(){
+        /**
+         * Check if module is installed
+         */
+        if (self::isInstalled($this->name)){
+
+        }
+    }
+
+    /**
+     * Module install function
+     * @return bool
+     */
+    public function install(){
+
+        /* Must be called before registering any hooks */
+        if (!parent::install()){
+            return false;
+        }
+
+        /* Always roll back changes if install fails */
+        $cond1 = false;
+        if(!$cond1){
+            $this->uninstall();
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Module uninstall function
+     * @return bool
+     */
+    public function uninstall(){
+
+        /* Move to bottom ? */
+        if (!parent::uninstall()){
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * On module disable event
+     * @param bool $forceAll
+     * @return bool
+     */
+    public function disable($forceAll = false) {
+        // Disable installed features
+        return parent::disable($forceAll);
+    }
+
+    /**
+     * On module enable event
+     * @param bool $forceAll
+     * @return bool
+     */
+    public function enable($forceAll = false) {
+        // Re-enable installed features
+        return parent::enable($forceAll);
+    }
+
+    /**
+     * Creates and returns configuration page content for this module
+     * @return string HTML
+     */
+    public function getContent()
+    {
+        $info  = $this->_getPostProcessMessage();
+        $info .= $this->_getConfigurationJS();
+
+        $fields = array(
+            'MYMODULE_CONFIG_VAR_1' => array(
+                'title' => $this->l(''),
+                'desc'  => $this->l(''),
+                /* {'intval', 'floatval', 'boolval', 'strval'} */
+                'cast'  => 'intval',
+                /* 'text', 'hidden', 'select', 'bool', 'radio', 'checkbox', 'password',
+                   'textarea', 'file', 'textLang', 'textareaLang', 'selectLang'*/
+                'type' => 'text',
+                'suffix' => '$',
+                /* id ? */
+                'identifier' => 'configVar1',
+                /* for select field only */
+                'list' => array(),
+                /* for select field only */
+                'empty_message' => $this->l('Please select an item'),
+                /* for textarea field only */
+                'cols' => 40,
+                /* for textarea field only */
+                'rows' => 5,
+                /* for file field only */
+                'thumb' => 'url/img/img.jpg',
+                /* Disable the field depending on shop context */
+                'is_invisible' => false,
+            ),
+        );
+
+        $fieldsets = array();
+        $fieldsets['general'] = array(
+            'title'   => $this->l('Module settings'),
+            'image'   => '../img/admin/information.png',
+            /* 'info' - unstyled info inside form */
+            'info'    => $info,
+            /* 'description' - styled message text inside form */
+            /* 'top' - unstyled text above form */
+            'fields'  => $fields,
+            'submit'  => array(
+                'name'  => 'submit'.$this->name,
+            ),
+        );
+
+        /**
+         * PS 1.6 shows save button below
+         */
+        if($this->bootstrap){
+            $fieldsets['general']['submit']['title'] = $this->l('Save');
+            /* 'class' => 'button btn btn-default pull-right' */
+        }
+
+        /* Helper Options automatically retrieves specified fields (their values) from configuration table */
+        $helper = new HelperOptions();
+        $helper->module = $this;
+        $helper->id     = $this->id; /* ? */
+        $helper->token  = Tools::getAdminTokenLite('AdminModules');
+        $helper->currentIndex = AdminController::$currentIndex.'&configure='.$this->name;
+        $helper->title  = $this->displayName;
+
+        /* Enable toolbar on PS 1.5 only */
+        $helper->show_toolbar = !$this->bootstrap; /**/
+        /* Enables sticky toolbar */
+        $helper->toolbar_scroll = true;
+        $helper->toolbar_btn = array(
+            'save' => array(
+                'desc' => $this->l('Save'),
+                'href' => AdminController::$currentIndex.'&configure='.$this->name.'&save'.$this->name.'&token='.Tools::getAdminTokenLite('AdminModules'),
+            ),
+            'back' => array(
+                'desc' => $this->l('Back to list'),
+                'href' => AdminController::$currentIndex.'&token='.Tools::getAdminTokenLite('AdminModules'),
+            )
+        );
+
+        return $helper->generateOptions($fieldsets);
+    }
+
+    protected function getHtmlFormTemplate(){
+        $this->context->smarty->assign(array(
+            'param1' => 'val1',
+            'param2' => 'val2',
+        ));
+        return $this->context->smarty->fetch($this->folder.'views/templates/template.tpl');
+    }
+
+
+
+
 
     /**
      * Register an array of module hooks and return true or false
@@ -98,181 +264,6 @@ class MyModule extends Module
         return $isSuccess;
     }
 
-    protected function generateConfigurationForm()
-    {
-        $castValues = array(
-            'int'    => 'intval',
-            'float'  => 'floatval',
-            'bool'   => 'boolval',
-            'string' => 'strval'
-        );
-
-        $langFields = array(
-            'textarea' => 'textareaLang',
-            'text'     => 'textLang',
-            'select'   => 'selectLang',
-        );
-
-
-        // Rewrite keys and values to fit HelperOptions class standards
-
-        $isRTE = false;
-        $configs = $this->configuration['fields'];
-
-        // change 'type'  => 'cast'
-        // and    'input' => 'type'
-
-        /*
-          'type' => {'text', 'hidden', 'select', 'bool', 'radio',
-          'checkbox', 'password', 'textarea', 'file', 'textLang',
-          'textareaLang', 'selectLang'},
-        */
-
-        foreach($configs as $key => &$config)
-        {
-            // Set input ID same as name
-            $config['id'] = $key;
-            /* $config['identifier'] = 'identifier'.$key; */
-
-            // Set rich text editing for textareas // activate with pregreplace
-            if($config['input'] == 'textarea'){
-                if(isset($config['rte'])){
-                    if($config['rte'] == true){
-                        $config['autoload_rte'] = true;
-                        unset($config['rte']);
-                        $isRTE = true;
-                    }
-                }
-
-                // Set default textarea sizes
-                if(!isset($config['cols'])){
-                    $config['cols'] = 70;
-                }
-
-                if(!isset($config['rows'])){
-                    $config['rows'] = 7;
-                }
-            }
-
-            if(($config['input'] == 'text') || ($config['input'] == 'textLang')){
-                if(!isset($config['size'])){
-                    $config['size'] = 70;
-                }
-            }
-
-
-            // Set 'cast' => intval | floatval | boolval | strval
-            if(array_key_exists($config['type'], $castValues)){
-                $config['cast'] = $castValues[ $config['type'] ];
-            }
-
-            // 'switch' => 'bool', lang ? textLang, textareaLang, selectLang
-            $inputType = $config['input'];
-            unset( $config['input'] );
-
-            $config['type'] = $inputType;
-
-            if($inputType == 'switch'){
-                $config['type'] = 'bool';
-            }
-
-            if(isset($config['lang'])){
-                if($config['lang'] == true){
-                    if(array_key_exists($inputType, $langFields)){
-                        $config['type'] = $langFields[ $inputType ];
-                    }
-                }
-            }
-        }
-
-        /*
-        $icon = array();
-        $icon['key'] = ($this->bootstrap ? 'icon' : 'image');
-        $icon['val'] = ($this->bootstrap ? 'icon-cogs' : _PS_ADMIN_IMG_.'information.png');
-        */
-
-        $fieldsets = array();
-        $fieldsets['general'] = array(
-            'title'      => $this->l('Module settings'),
-            'image'      => '../img/admin/information.png',
-            /* $icon['key'] => $icon['val'], */ // Skip to place default
-            /* 'top' => $this->l('Text to display before the fieldset'), Unstyled text above form */
-            /* 'description' => $this->l('Display as description'), Styled info inside form*/
-            /* 'info' => $this->l('Display as info'), Unstyled text inside form */
-
-            'tinymce' => $isRTE,
-            'fields'  => $configs,
-            'submit'  => array(
-                'name'  => 'submit'.$this->name,
-                /* 'title' => $this->l('Save'), */ // If PS 1.6
-                /* 'class' => 'button btn btn-default pull-right' */ // If PS 1.6
-            ),
-        );
-
-        if(isset($this->configuration['info'])){
-            $fieldsets['general']['description'] = $this->configuration['info'];
-        }
-
-
-
-
-        /*
-         * ['title'] => $this->l('Carrier options'),                  // The title of the fieldset. If missing, default is 'Options'.
-    ['top'] => $this->l('Text to display before the fieldset'),    // This text is display right above the first. Rarely used.
-    ['image'] => 'url to icon',                                    // If missing, will use the default icon for the tab.
-    ['description'] => $this->l('Display as description'),         // Displays an informational box above the fields.
-    ['info'] => $this->l('Display as info'),                       // Displays an unstyled text above the fields.
-*/
-
-        //error_log(print_r($fieldsets, true));
-
-        $helper = new HelperOptions();
-        $helper->module = $this;
-        $helper->id = $this->id;
-        $helper->token = Tools::getAdminTokenLite('AdminModules');
-        $helper->currentIndex = AdminController::$currentIndex.'&configure='.$this->name;
-        $helper->title = $this->displayName;
-
-        // If PS 1.5
-        $helper->show_toolbar = true;
-        $helper->toolbar_scroll = true;
-        $helper->toolbar_btn = array(
-            'save' => array(
-                'desc' => $this->l('Save'),
-                'href' => AdminController::$currentIndex.'&configure='.$this->name.'&save'.$this->name.
-                    '&token='.Tools::getAdminTokenLite('AdminModules'),
-            ),
-            'back' => array(
-                'href' => AdminController::$currentIndex.'&token='.Tools::getAdminTokenLite('AdminModules'),
-                'desc' => $this->l('Back to list')
-            )
-        );
-
-        return $helper->generateOptions($fieldsets);
-    }
-
-    /**
-     * Executes an array of SQL statements
-     * @param array $sql
-     * @return bool
-     */
-    protected function runSQL($sql)
-    {
-        $db = Db::getInstance();
-        foreach ($sql as $query) {
-            try {
-                if(!$db->execute($query)){
-                    return false;
-                }
-            } catch (Exception $e) {
-                // Set module install error ?
-                error_log($e);
-                return false;
-            }
-        }
-        return true;
-    }
-
     /**
      * Installs a new Admin Tab with provided parameters
      * @param string|array $tabTitle Tab title: single string or language array
@@ -285,13 +276,8 @@ class MyModule extends Module
         $tab = new Tab();
 
         $tab->class_name = $controllerClassName;
-        $tab->module  = $this->name;
-
-        if(is_array($tabTitle)){
-            $tab->name = $tabTitle;
-        } else {
-            $tab->name = MyTools::makeValueLangArray($tabTitle);
-        }
+        $tab->module     = $this->name;
+        $tab->name       = is_array($tabTitle) ? $tabTitle : MyTools::makeValueLangArray($tabTitle);
 
         if(!empty($parentClassName) && is_string($parentClassName)){
             $tab->id_parent = (int) Tab::getIdFromClassName($parentClassName);
@@ -314,68 +300,6 @@ class MyModule extends Module
         $id_tab = (int) Tab::getIdFromClassName($controllerClassName);
         $tab    = new Tab($id_tab);
         return $tab->delete();
-    }
-
-
-    /**
-     * Installs a module carrier
-     * @param array $carrierProperties
-     * @return bool|int Returns installed carrier ID or false if failed to install
-     */
-    public function installModuleCarrier($carrierProperties) {
-
-        $carrier = new Carrier();
-        $carrier->hydrate($carrierProperties);
-
-        if ($carrier->add())
-        {
-            $id_carrier = (int) $carrier->id;
-
-            // Assign carrier to all groups
-            $groupIDs = $this->getGroupsIDs();
-            $carrier->setGroups($groupIDs);
-
-            // Add weight ranges to carrier
-            $rangePrices = array();
-            foreach($carrierProperties['ranges'] as $range){
-                $rangeWeight = new RangeWeight();
-                $rangeWeight->hydrate(array(
-                    'id_carrier' => $id_carrier,
-                    'delimiter1' => (float) $range['delimiter1'],
-                    'delimiter2' => (float) $range['delimiter2'],
-                ));
-                $rangeWeight->add();
-
-                // Save range ID and price and set it after the Zones have been added
-                $rangePrices[] = array(
-                    'id_range_weight' => $rangeWeight->id,
-                    'price' => $range['price'],
-                );
-            }
-
-            // Set tax rule group to none (id = 0, all_shops=true)
-            $carrier->setTaxRulesGroup(0, true);
-
-            // Add Europe for EVERY carrier range
-            // Automatically creates rows in delivery table, price is 0
-            $id_zone_europe = Zone::getIdByName('Europe');
-            $carrier->addZone($id_zone_europe ? $id_zone_europe : 1);
-
-            // Update prices in delivery table for each range (need IDs)
-            foreach($rangePrices as $rangePrice){
-                $data  = array('price' => $rangePrice['price'],);
-                $where = 'id_range_weight = '.$rangePrice['id_range_weight'];
-                Db::getInstance()->update('delivery', $data, $where);
-            }
-
-            // Copy carrier logo
-            copy($carrierProperties['img'], _PS_SHIP_IMG_DIR_.'/'.$id_carrier.'.jpg');
-
-            return $id_carrier;
-        }
-
-        // Failed to add carrier
-        return false;
     }
 
 }
