@@ -24,6 +24,12 @@ class MyObjectModel extends ObjectModel {
         )
     );
 
+    public function add($autodate = true, $null_values = false){
+        //$this->module_description = nl2br($this->module_description);
+        return parent::add($autodate, $null_values);
+    }
+
+
     /**
      * Returns model's table name
      * @param bool $prefix
@@ -78,4 +84,28 @@ class MyObjectModel extends ObjectModel {
     public static function dropTable(){
         return Db::getInstance()->execute('DROP TABLE IF EXISTS `'.self::getTableName(true).'`;');
     }
+
+    public static function allowedMimeTypes(){
+        return array(
+            'txt'  => 'text/plain',
+            'rtf'  => 'application/rtf',
+            'doc'  => 'application/msword',
+            'docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            'pdf'  => 'application/pdf',
+            'zip'  => 'application/zip',
+            'png'  => 'image/png',
+            'jpeg' => 'image/jpeg',
+            'gif'  => 'image/gif',
+            'jpg'  => 'image/jpeg',
+            'rar'  => 'application/x-rar-compressed',
+            '7z'   => 'application/x-7z-compressed',
+        );
+    }
+
+    public function getFileMimeType(){
+        $ext = pathinfo($this->getFileName(), PATHINFO_EXTENSION);
+        $mimeTypes = self::allowedMimeTypes();
+        return array_key_exists($ext, $mimeTypes) ? $mimeTypes[$ext] : false;
+    }
+
 }
